@@ -11,9 +11,9 @@ func main() {
 	os.Setenv("AWS_PROFILE", "daniel-dev-gigs")
 
 	agl := AGL{}
-	logStreams := agl.getLogStreams("createArticle")
+	logStreams := agl.getLogEvents(os.Args[1])
 
 	for _, v := range logStreams {
-		fmt.Println(v.logGroupName)
+		fmt.Println(string(*v.Message))
 	}
 }

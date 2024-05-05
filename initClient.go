@@ -8,7 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs"
 )
 
-func (AGL) initClient(c *cloudwatchlogs.Client) {
+func initClient(c *cloudwatchlogs.Client) {
 	cfg, err := config.LoadDefaultConfig(context.TODO())
 
 	if err != nil {

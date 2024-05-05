@@ -9,14 +9,15 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs/types"
 )
 
-func (a AGL) getLogStreams(searchTerm string) []LogStreamsOutput {
+func getLogStreams(searchTerm string, cl *cloudwatchlogs.Client) []LogStreamsOutput {
 	var r []LogStreamsOutput
-	var cl cloudwatchlogs.Client
-
-	a.initClient(&cl)
 
 	output, err := cl.DescribeLogGroups(context.TODO(), &cloudwatchlogs.DescribeLogGroupsInput{})
 	lgs := filterLogGroupsByName(searchTerm, output.LogGroups)
+
+	if len(lgs) == 0 {
+		panic("No logs were found with the name " + searchTerm)
+	}
 
 	// make a buffered channel for log streams requests
 	c := make(chan LogStreamsOutput, len(output.LogGroups))
