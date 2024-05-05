@@ -1,0 +1,49 @@
+	// load the config
+	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithSharedConfigProfile("daniel-dev-gigs"))
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// create a new cw client
+	client := cloudwatchlogs.NewFromConfig(cfg)
+
+	// get the log group names
+	output, err := client.DescribeLogGroups(context.TODO(), &cloudwatchlogs.DescribeLogGroupsInput{})
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// make a new channel for log streams requests
+	c := make(chan LogStreamsOutput)
+
+	// iterate through the log groups and
+	// launch a goroutine for getting its logstreams and store them in channel c
+	for _, v := range output.LogGroups {
+		// fmt.Println(i, string(*v.LogGroupName))
+		go func(lg string) {
+			output, err := client.DescribeLogStreams(context.TODO(), &cloudwatchlogs.DescribeLogStreamsInput{
+				LogGroupName: &lg,
+			})
+
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			c <- LogStreamsOutput{
+				logGroupName: lg,
+				logStreams:   output.LogStreams,
+			}
+
+		}(string(*v.LogGroupName))
+	}
+
+	// iterate through channel c and print the
+	// logstream name from each struct
+	for l := range c {
+		fmt.Println(l.logGroupName)
+		for _, ls := range l.logStreams {
+			fmt.Println(string(*ls.LogStreamName))
+		}
+	}
